@@ -13,7 +13,7 @@ def init_page():
                   'yearly': 0,
                   'last_visit': '01.01.1970'}
     counter.put_json(count_data)
-    return 'This is a service page'
+    return 'This is a service page. Init complete successfully'
 
 
 @app.route('/')
