@@ -13,7 +13,7 @@ def test_count_10_times():
     counter.put_json(test_data)
 
     for i in range(10):
-        counter.get_count()
+        counter.make_count()
     with open(counter.file_data) as file:
         count_data = json.load(file)
     assert count_data['daily'] == 10

@@ -1,50 +1,37 @@
-import json
+from collections import defaultdict
+from data_storage import AbstractStorage
 from datetime import datetime
 
 
 class Counter:
-    def __init__(self, file_date):
-        self.file_data = file_date
+    def __init__(self, file_date, way_from):
+        self.data_storage = AbstractStorage(file_date)
+        self.count_data = self.data_storage.load_data('count_visits', way_from)
+        self.keys = ['daily', 'monthly', 'yearly']
 
-    def put_json(self, count_data):
-        with open(self.file_data, 'w') as write_file:
-            json.dump(count_data, write_file)
+    def upload_metadata(self, way, user_id):
+        self.data_storage.insert_data(user_id, get_date(), way)
 
-    def get_count(self):
-        with open(self.file_data, 'r') as read_file:
-            count_data = json.load(read_file)
-        count_data['total'] += 1
-        get_daily_count(count_data)
-        get_monthly_count(count_data)
-        get_yearly_count(count_data)
-        count_data['last_visit'] = get_date()
-        with open(self.file_data, 'w') as write_file:
-            json.dump(count_data, write_file)
-        return count_data
+    def make_count(self):
+        self.count_data['total'] += 1
+        current_visit = get_date()
+        self.compute_count(current_visit)
+        self.count_data['last_visit'] = current_visit
+        self.data_storage.update_data(self.count_data)
+        return self.count_data
 
+    def compute_count(self, current_visit):
+        split = 0
+        for key in self.keys:
+            if current_visit[split:] != self.count_data['last_visit'][split:]:
+                self.count_data[key] = 1
+            else:
+                self.count_data[key] += 1
+            split += 3
 
-def get_daily_count(count_data):
-    current_visit = get_date()
-    if current_visit != count_data['last_visit']:
-        count_data['daily'] = 1
-    else:
-        count_data['daily'] += 1
-
-
-def get_monthly_count(count_data):
-    current_visit = get_date()
-    if current_visit[3:] != count_data['last_visit'][3:]:
-        count_data['monthly'] = 1
-    else:
-        count_data['monthly'] += 1
-
-
-def get_yearly_count(count_data):
-    current_visit = get_date()
-    if current_visit[6:] != count_data['last_visit'][6:]:
-        count_data['yearly'] = 1
-    else:
-        count_data['yearly'] += 1
+    def next_id(self):
+        self.count_data['last_id'] += 1
+        return self.count_data['last_id']
 
 
 def get_date():
