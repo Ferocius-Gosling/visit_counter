@@ -1,12 +1,11 @@
-from collections import defaultdict
 from data_storage import AbstractStorage
 from datetime import datetime
 
 
 class Counter:
     def __init__(self, file_date, way_from):
-        self.data_storage = AbstractStorage(file_date)
-        self.count_data = self.data_storage.load_data('count_visits', way_from)
+        self.data_storage = AbstractStorage(file_date, way_from)
+        self.count_data = self.data_storage.load_data('count_visits')
         self.keys = ['daily', 'monthly', 'yearly']
 
     def upload_metadata(self, way, user_id):
@@ -29,8 +28,9 @@ class Counter:
                 self.count_data[key] += 1
             split += 3
 
-    def next_id(self):
+    def next_user_id(self):
         self.count_data['last_id'] += 1
+        self.data_storage.update_data(self.count_data)
         return self.count_data['last_id']
 
 

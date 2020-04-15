@@ -6,30 +6,37 @@ import threading
 app = Flask(__name__)
 
 
-@app.route('/init/')
-def init_page():
-    counter = Counter('visits.txt')
-    counter.count_data = {'total': 0,
-                          'daily': 0,
-                          'monthly': 0,
-                          'yearly': 0,
-                          'last_id': 0,
-                          'ids': [],
-                          'last_visit': '01.01.1970'}
-    counter.data_storage.save_data(counter.count_data)
-    return 'This is a service page. Init complete successfully'
-
-
 @app.route('/users/')
 def users_page():
-    counter = Counter('')
+    counter = Counter('count_data', 'users')
+    if session == {}:
+        session['id'] = counter.next_user_id()
+    if session['id'] != counter.count_data['last_id']:
+        counter.count_data['last_id'] = session['id']
+    counter.make_count()
+    counter.upload_metadata('users', session['id'])
+    return render_template('index.html', **counter.count_data)
 
 
 @app.route('/main_page/')
 def main_page():
     counter = Counter('count_data', 'main_page')
     if session == {}:
-        session['id'] = counter.next_id()
+        session['id'] = counter.next_user_id()
+    if session['id'] != counter.count_data['last_id']:
+        counter.count_data['last_id'] = session['id']
+    counter.make_count()
+    counter.upload_metadata('main_page', session['id'])
+    return render_template('index.html', **counter.count_data)
+
+
+@app.route('/settings/')
+def init_page():
+    counter = Counter('count_data', 'settings')
+    if session == {}:
+        session['id'] = counter.next_user_id()
+    if session['id'] != counter.count_data['last_id']:
+        counter.count_data['last_id'] = session['id']
     counter.make_count()
     counter.upload_metadata('main_page', session['id'])
     return render_template('index.html', **counter.count_data)

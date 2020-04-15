@@ -1,0 +1,1 @@
+{"total": 30, "daily": 10, "monthly": 10, "yearly": 10, "last_visit": "02.04.2020"}
