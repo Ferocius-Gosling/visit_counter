@@ -1,12 +1,12 @@
-from data_storage import AbstractStorage
+import storage
 from datetime import datetime
+import const
 
 
-class Counter:
-    def __init__(self, file_date, way_from):
-        self.data_storage = AbstractStorage(file_date, way_from)
+class VisitCounter:
+    def __init__(self, file_data, way_from, type_storage):
+        self.data_storage = storage.check_type(type_storage, file_data, way_from)
         self.count_data = self.data_storage.load_data('count_visits')
-        self.keys = ['daily', 'monthly', 'yearly']
 
     def upload_metadata(self, way, user_id):
         self.data_storage.insert_data(user_id, get_date(), way)
@@ -21,7 +21,7 @@ class Counter:
 
     def compute_count(self, current_visit):
         split = 0
-        for key in self.keys:
+        for key in const.keys_counter:
             if current_visit[split:] != self.count_data['last_visit'][split:]:
                 self.count_data[key] = 1
             else:

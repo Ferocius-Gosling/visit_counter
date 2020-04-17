@@ -1,11 +1,16 @@
-from counter import Counter
+from counter import VisitCounter
 import pytest
-import pymysql
+import os
 
 
 @pytest.fixture()
 def test_counter():
-    return Counter('count_data', 'test')
+    return VisitCounter('count_data', 'test', 'sql')
+
+
+@pytest.fixture()
+def counter_file():
+    return VisitCounter('count_data', 'test', 'file')
 
 
 def test_count_10_times(test_counter):
@@ -37,10 +42,8 @@ def test_upload_metadata(test_counter):
         for _ in range(10):
             test_counter.upload_metadata('test', test_counter.count_data['last_id'])
         assert True
-    except TypeError:
-        assert False
-    except SyntaxError:
-        assert False
+    except Exception as e:
+        assert False, str(e)
 
 
 def test_next_id(test_counter):
@@ -48,3 +51,31 @@ def test_next_id(test_counter):
     test_counter.next_user_id()
     assert test_counter.count_data['last_id'] == last_id + 1
 
+
+def test_count_10_times_file(counter_file):
+    total = counter_file.count_data['total']
+    yearly = counter_file.count_data['yearly']
+    monthly = counter_file.count_data['monthly']
+    daily = counter_file.count_data['daily']
+    for _ in range(10):
+        counter_file.make_count()
+
+    assert counter_file.count_data['daily'] == daily + 10
+    assert counter_file.count_data['total'] == total + 10
+    assert counter_file.count_data['monthly'] == monthly + 10
+    assert counter_file.count_data['yearly'] == yearly + 10
+
+
+def test_upload_metadata_file(counter_file):
+    try:
+        for _ in range(10):
+            counter_file.upload_metadata('test', counter_file.count_data['last_id'])
+        assert True
+    except Exception as e:
+        assert False, str(e)
+
+
+def test_create_file_when_file_not_exists():
+    counter = VisitCounter('count_data', 'test1', 'file')
+    assert os.path.exists(counter.data_storage.way_from)
+    os.remove(counter.data_storage.way_from)
