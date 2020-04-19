@@ -1,6 +1,5 @@
-from flask import Flask, render_template, make_response, session
+from flask import Flask, render_template, make_response, request, session
 from counter import VisitCounter
-from config import base
 import argparse
 
 
@@ -8,9 +7,44 @@ app = Flask(__name__)
 type_storage = 'sql'
 
 
+counter = VisitCounter(storage_type='enum.Value', storage_params={})
+
+# клиентская часть
+# javascript-код который отправляет запрос на сервер при посещении странице
+# он должен проставлять cookie user_id пользователю если ее нет
+# защитится от накрутки, установив cookie с временем жизни
+# серверная часть
+@app.route('/visit', methods=['GET'])
+def visit():
+    """
+    Записывает очерередное посещение с указанными мета-данными
+    URI параметры: (example: http://visit-counter.ru/visit?user_id=id&...)
+
+     - user_id - идентификатор пользователя (uuid)
+     - domain - сам сайт, который считает посещения
+     - path - путь до страницы на сайте, которую посетли
+     - user_agent - информация о браузере
+    """
+    counter.increment(*params)
+    return '', 204
+
+
+@app.route('/stats', )
+def stats():
+    """
+    Возвращает статистику посещений.
+    Возможные фильтры (URI параметры)
+     - по дате
+     - пользователю
+     - по браузеру
+     - домену
+     - странице
+    """
+    return counter.get_stats(fitlters=...), 200
+
 @app.route('/users/')
 def users_page():
-    counter = VisitCounter('count_data', 'users', type_storage)
+
     if session == {}:
         session['id'] = counter.next_user_id()
     if session['id'] != counter.count_data['last_id']:
@@ -54,7 +88,6 @@ def main():
                         help='choose sql or file storage. Example: -s file.')
     namespace = parser.parse_args()
     type_storage = namespace.storage
-    app.secret_key = base.SECRET_KEY
     app.run(host=namespace.host, port=namespace.port, debug=namespace.debug)
 
 
