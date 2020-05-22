@@ -24,10 +24,19 @@ class Metadata:
         self.meta['user_agent'] = user_agent
 
 
+def check_in_keys_meta(name):
+    for key in keys_meta:
+        if key == name:
+            return True
+    return False
+
+
 keys_storage = ['total', 'yearly', 'monthly',
                 'daily', 'last_id', 'domain', 'last_visit']
 
 keys_counter = ['daily', 'monthly', 'yearly']
+
+keys_meta = ['id', 'date', 'path', 'domain', 'user_agent']
 
 default_dict = {
             'total': 0,

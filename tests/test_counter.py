@@ -182,9 +182,3 @@ def test_get_stats_by_user_agent_sql(counter_file, user_id):
     assert counter_file.count_data['monthly'] == stats['monthly']
     assert counter_file.count_data['yearly'] == stats['yearly']
     assert stats['selected'] == test2 + 5
-
-
-def test_create_file_when_file_not_exists():
-    counter = VisitCounter('count_data', 'test1', 'file')
-    assert os.path.exists(counter.data_storage.count_data)
-    os.remove(counter.data_storage.count_data)

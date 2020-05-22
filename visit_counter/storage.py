@@ -14,8 +14,6 @@ class AbstractStorage(abc.ABC):
 
     def get_data_by(self, column_name):
         raise NotImplementedError
-    # def insert_data(self, user_id, date, way):
-    #     raise NotImplementedError
 
 
 class MySQLStorage(AbstractStorage):
@@ -31,7 +29,6 @@ class MySQLStorage(AbstractStorage):
         with self.file_data:
             cur = self.file_data.cursor()
             cur.execute('SELECT * FROM count_visits WHERE domain=%s', self.path_from)
-           # fetched =
             count_data = cur.fetchall()[0]
         return count_data
 
@@ -44,6 +41,8 @@ class MySQLStorage(AbstractStorage):
                 cur.execute(query + key + '=%s' + where, count_data[key])
 
     def get_data_by(self, column_name):
+        if not const.check_in_keys_meta(column_name):
+            return []
         with self.file_data:
             cur = self.file_data.cursor()
             select_from = 'SELECT ' + column_name + ' FROM user_visits '
@@ -90,14 +89,6 @@ class FileStorage(AbstractStorage):
 
     def insert_data(self, metadata):    
         pass
-
-    # def insert_data(self, user_id, date, way):
-    #     # self._check_file_exists(self.visits_data, const.visit_dict)
-    #     # with open(self.visits_data, 'r') as read_file:
-    #     #   visits = json.load(read_file)
-    #     visits['meta'].append()
-    #     with open(self.visits_data, 'w+') as write_file:
-    #         json.dump(visits, write_file)
 
 
 def check_type(type_storage, file_data, domain):
