@@ -5,10 +5,13 @@
     <title>Test Counter</title>
 </head>
 <body>
+<script src="{{ url_for('static', filename='req.js') }}">
+</script>
 This site was visited {{ total }} times. <br>
 This site was visited by {{ last_id }} unique users. <br>
 Today this site was visited {{ daily }} times. <br>
 In this month this site was visited {{ monthly }} times. <br>
 In this year this site was visited {{ yearly }} times. <br>
+Select a path to count visits. {{ selected }} <br>
 </body>
 </html>

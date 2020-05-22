@@ -1,6 +1,7 @@
 .coverage
 count_data
 venv
+./pytest_cache
 .pytest_cache
 .idea
 main_page
@@ -8,4 +9,8 @@ settings
 test
 users
 visits.txt
-tests/__pycache__
+./__pycache__
+__pycache__
+notes.txt
+127.0.0.1
+test_date
