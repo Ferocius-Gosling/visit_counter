@@ -37,23 +37,3 @@ function findCookieUserId(cookie) {
     }
     return null;
 }
-//var userAgent = navigator.userAgent;
-//    var host = window.location.hostname;
-//    var pathn = window.location.pathname;
-//    var url = new URL(window.location.host + '/visit ');
-//    var reqBody = { user_agent: userAgent,
-//	domain: host,
-//	path: pathn
-//    };
-//    var req = new XMLHttpRequest();
-//    req.open('POST', url);
-//    req.setRequestHeader('Content-Type', 'application/json; charset=utf-8')
-//    req.send(JSON.stringify(reqBody));
-//    var req = fetch(url, {
-//        method: 'POST',
-//        headers: {
-//            'Content-Type': 'application/json;charset=utf-8'
-//        },
-//        body: JSON.stringify(reqBody)
-//    });
-//    req.json();

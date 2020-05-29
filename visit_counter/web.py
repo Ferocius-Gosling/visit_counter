@@ -4,8 +4,7 @@ from config import base
 
 
 app = Flask(__name__)
-type_storage = base.STORAGE_TYPE
-counter = VisitCounter('count_data', base.HOSTNAME, type_storage)
+counter = VisitCounter(base.HOSTNAME, base.STORAGE_TYPE, base.CONNECT_KWARGS)
 
 
 @app.route('/visit', methods=['POST'])
@@ -17,5 +16,5 @@ def visit():
 
 @app.route('/stats')
 def stats():
-    stat = counter.get_stats('path','/stats')
+    stat = counter.get_stats('path', '/stats')
     return render_template('index.html', **stat)

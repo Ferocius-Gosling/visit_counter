@@ -1,5 +1,5 @@
 from visit_counter.counter import VisitCounter, get_date
-from visit_counter.const import StorageType
+from visit_counter.const import StorageType, default_kwargs
 import uuid
 import pytest
 import os
@@ -7,12 +7,12 @@ import os
 
 @pytest.fixture()
 def test_counter():
-    return VisitCounter('count_data', 'test', StorageType('file'))
+    return VisitCounter('test', StorageType('file'), default_kwargs)
 
 
 @pytest.fixture()
 def counter_file():
-    return VisitCounter('count_data', 'test', StorageType('sql'))
+    return VisitCounter('test', StorageType('sql'), default_kwargs)
 
 
 @pytest.fixture()
@@ -34,8 +34,8 @@ def test_count_10_times(test_counter, user_id):
     assert test_counter.count_data['yearly'] == yearly + 5
 
 
-def test_count_with_different_date(test_counter, user_id):
-    counter = VisitCounter('count_data', 'test_date', StorageType('file'))
+def test_count_with_different_date(user_id):
+    counter = VisitCounter('test_date', StorageType('file'), default_kwargs)
     counter.count_data['last_visit'] = '01.01.1970'
     for _ in range(5):
         counter.make_visit('/test', user_id, 'Mozilla/5.0', 'test_date')
@@ -102,6 +102,12 @@ def test_get_stats_by_user_agent(test_counter, user_id):
     assert stats['selected'] == test2 + 5
 
 
+def test_sql_counter_create_correctly(counter_file):
+    assert counter_file.type_storage == StorageType('sql')
+    assert counter_file.count_data is not None
+    assert counter_file is not None
+
+
 def test_count_10_times_sql(counter_file, user_id):
     total = counter_file.count_data['total']
     yearly = counter_file.count_data['yearly']
@@ -114,71 +120,3 @@ def test_count_10_times_sql(counter_file, user_id):
     assert counter_file.count_data['total'] == total + 5
     assert counter_file.count_data['monthly'] == monthly + 5
     assert counter_file.count_data['yearly'] == yearly + 5
-
-
-def test_count_with_different_date_sql(user_id):
-    counter = VisitCounter('count_data', 'test_data', StorageType('sql'))
-    counter.count_data['last_visit'] = '01.01.1970'
-    for _ in range(5):
-        counter.make_visit('/test', user_id, 'Mozilla/5.0', 'test_data')
-
-    assert counter.count_data['daily'] == 5
-    assert counter.count_data['monthly'] == 5
-    assert counter.count_data['yearly'] == 5
-
-
-def test_next_id_sql(counter_file, user_id):
-    unique_count = counter_file.count_data['last_id']
-    counter_file.make_visit('/test', user_id, 'Mozilla/5.0', 'test', is_unique=True)
-    assert counter_file.count_data['last_id'] == unique_count + 1
-
-
-def test_get_stats_by_path_sql(counter_file, user_id):
-    stats2 = counter_file.get_stats('path', '/test2')
-    test2 = stats2['selected']
-    for _ in range(5):
-        counter_file.make_visit('/test2', user_id, 'Mozilla/5.0', 'test')
-    stats = counter_file.get_stats('path', '/test2')
-
-    assert counter_file.count_data['daily'] == stats['daily']
-    assert counter_file.count_data['total'] == stats['total']
-    assert counter_file.count_data['monthly'] == stats['monthly']
-    assert counter_file.count_data['yearly'] == stats['yearly']
-    assert stats['selected'] == test2 + 5
-
-
-def test_get_stats_by_user_id_sql(counter_file):
-    unique_user_id = str(uuid.uuid4())
-    for _ in range(5):
-        counter_file.make_visit('/test', unique_user_id, 'Mozilla/5.0', 'test')
-    stats = counter_file.get_stats('id', unique_user_id)
-
-    assert counter_file.count_data['daily'] == stats['daily']
-    assert counter_file.count_data['total'] == stats['total']
-    assert counter_file.count_data['monthly'] == stats['monthly']
-    assert counter_file.count_data['yearly'] == stats['yearly']
-    assert stats['selected'] == 5
-
-
-def test_get_stats_by_date_day_sql(counter_file, user_id):
-    stats = counter_file.get_stats('date', get_date())
-
-    assert counter_file.count_data['daily'] == stats['daily']
-    assert counter_file.count_data['total'] == stats['total']
-    assert counter_file.count_data['monthly'] == stats['monthly']
-    assert counter_file.count_data['yearly'] == stats['yearly']
-    assert stats['selected'] == counter_file.count_data['daily']
-
-
-def test_get_stats_by_user_agent_sql(counter_file, user_id):
-    stats2 = counter_file.get_stats('user_agent', 'Mozilla/5.0 (like Gecko)')
-    test2 = stats2['selected']
-    for _ in range(5):
-        counter_file.make_visit('/test', user_id, 'Mozilla/5.0 (like Gecko)', 'test')
-    stats = counter_file.get_stats('user_agent', 'Mozilla/5.0 (like Gecko)')
-
-    assert counter_file.count_data['daily'] == stats['daily']
-    assert counter_file.count_data['total'] == stats['total']
-    assert counter_file.count_data['monthly'] == stats['monthly']
-    assert counter_file.count_data['yearly'] == stats['yearly']
-    assert stats['selected'] == test2 + 5

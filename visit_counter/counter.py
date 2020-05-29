@@ -4,9 +4,9 @@ from collections import Counter
 
 
 class VisitCounter:
-    def __init__(self, file_data, domain, type_storage):
+    def __init__(self, domain, type_storage, connection_kwargs=const.default_kwargs):
         self.type_storage = type_storage
-        self.data_storage = storage.check_type(type_storage, file_data, domain)
+        self.data_storage = storage.check_type(type_storage, connection_kwargs, domain)
         self.count_data = self.data_storage.load_data()
 
     def upload_metadata(self, path, user_id, user_agent, domain):
@@ -32,7 +32,7 @@ class VisitCounter:
 
     def __compute_count(self, current_visit):
         split = 0
-        for key in const.keys_counter:
+        for key in const.keys_date:
             if current_visit[split:] != self.count_data['last_visit'][split:]:
                 self.count_data[key] = 1
             else:
@@ -42,12 +42,13 @@ class VisitCounter:
     def __unique_user_increment(self):
         self.count_data['last_id'] += 1
 
-    def get_stats(self, column_name, item_to_count):
+    def get_stats(self, column_to_count, item_to_count):
         stats = self.count_data
-        selected_data = self.data_storage.get_data_by(column_name)
+        selected_data = self.data_storage.get_data_by(column_to_count)
         item_count = Counter(selected_data)
         stats['selected'] = item_count[item_to_count]
         return stats
+
 
 def get_date():
     now = datetime.now()

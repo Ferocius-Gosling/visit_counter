@@ -1,12 +1,13 @@
 import pytest
 import os
+import uuid
 from visit_counter import const
 from visit_counter.storage import FileStorage, MySQLStorage
 
 
 @pytest.fixture()
 def mysql_storage():
-    return MySQLStorage('count_data', 'test_storage')
+    return MySQLStorage(const.default_kwargs, 'test_storage')
 
 
 @pytest.fixture()
@@ -31,7 +32,7 @@ def test_load_data_file(file_storage):
 def test_upload_data_file(file_storage):
     some_data = const.default_dict
     file_storage.update_data(some_data)
-    assert os.path.exists(file_storage.count_data)
+    assert os.path.exists(file_storage.site)
     assert some_data == file_storage.load_data()
 
 
@@ -65,7 +66,7 @@ def test_update_data_sql(mysql_storage):
 
 
 def test_insert_data_sql(mysql_storage):
-    mysql_storage.insert_data('/test_storage1', '1', '01.01.0001', 'Mozilla/5.0', mysql_storage.path_from)
+    mysql_storage.insert_data('/test_storage1', '1', '01.01.0001', 'Mozilla/5.0', mysql_storage.site)
     some_data = mysql_storage.get_data_by('date')
     assert some_data is not None
     assert len(some_data) != 0
@@ -84,3 +85,17 @@ def test_get_data_by_value_sql(mysql_storage):
     assert isinstance(data, list)
     assert len(data) != 0
     assert data[0] == '/test_storage1'
+
+
+def test_connect_to_sql_storage(mysql_storage):
+    assert mysql_storage.connection is not None
+
+
+def test_when_domain_not_exists_sql():
+    domain = str(uuid.uuid4())
+    storage = MySQLStorage(const.default_kwargs, domain)
+    data = storage.load_data()
+    assert data is not None
+    assert data['total'] == 0
+    assert data['last_visit'] == '01.01.1970'
+    assert data['domain'] == domain

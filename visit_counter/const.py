@@ -31,10 +31,17 @@ def check_in_keys_meta(name):
     return False
 
 
+default_kwargs = {
+    'host': 'db4free.net',
+    'user': 'ferocius_gos',
+    'password': 'qwerty1234',
+    'db_name': 'count_data'
+}
+
 keys_storage = ['total', 'yearly', 'monthly',
                 'daily', 'last_id', 'domain', 'last_visit']
 
-keys_counter = ['daily', 'monthly', 'yearly']
+keys_date = ['daily', 'monthly', 'yearly']
 
 keys_meta = ['id', 'date', 'path', 'domain', 'user_agent']
 

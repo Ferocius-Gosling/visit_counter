@@ -6,3 +6,5 @@ SECRET_KEY = \
 STORAGE_TYPE = const.StorageType('sql')
 
 HOSTNAME = ""
+
+CONNECT_KWARGS = const.default_kwargs
