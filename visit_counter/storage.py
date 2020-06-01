@@ -73,7 +73,6 @@ class MySQLStorage(AbstractStorage):
             columns = 'path, id, date, user_agent, domain'
             cur.execute("INSERT INTO user_visits (%s) VALUE ('%s', '%s', '%s', '%s', '%s')"
                         % (columns, path, user_id, date, user_agent, domain))
-          #  cur.execute(query + value)
 
 
 class FileStorage(AbstractStorage):
