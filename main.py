@@ -18,10 +18,10 @@ def main():
     base.STORAGE_TYPE = const.StorageType(namespace.storage)
     base.HOSTNAME = namespace.host
     base.CONNECT_KWARGS = {
-        'host' : namespace.db_hostname,
-        'user' : namespace.db_user,
+        'host': namespace.db_hostname,
+        'user': namespace.db_user,
         'password': namespace.db_password,
-        'db_name' : namespace.db_name,
+        'db_name': namespace.db_name,
     }
     from visit_counter.web import app
 

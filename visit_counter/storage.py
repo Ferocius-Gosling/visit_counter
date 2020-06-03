@@ -2,14 +2,14 @@ import pymysql
 import json
 import abc
 import os
-from visit_counter import const
+from visit_counter import const, errors
 
 
 class AbstractStorage(abc.ABC):
     def load_data(self):
         raise NotImplementedError
 
-    def update_data(self, count_data):
+    def update_data(self, path, user_id, date, user_agent, domain):
         raise NotImplementedError
 
     def get_data_by(self, column_name):
@@ -17,61 +17,51 @@ class AbstractStorage(abc.ABC):
 
 
 class MySQLStorage(AbstractStorage):
-    def __init__(self, connection_kwargs: dict, site):
-        self.connection = self.__connect(connection_kwargs)
+    def __init__(self, site):
+        self.connection = None
         self.site = site
 
-    @staticmethod
-    def __connect(connect_kwargs: dict):
-        return pymysql.connect(host=connect_kwargs['host'],
+    def connect(self, **connect_kwargs):
+        try:
+            self.connection = pymysql.connect(
+                               host=connect_kwargs['host'],
                                user=connect_kwargs['user'],
                                password=connect_kwargs['password'],
                                db=connect_kwargs['db_name'],
                                cursorclass=pymysql.cursors.DictCursor)
+        except:
+            raise errors.ConnectionError()
 
     def load_data(self):
         with self.connection:
             cur = self.connection.cursor()
-            self.__check_domain_exist(cur)
-            cur.execute('SELECT * FROM count_visits WHERE domain=%s', self.site)
-            count_data = cur.fetchall()[0]
+            cur.execute('SELECT * FROM visits WHERE domain=%s', self.site)
+            count_data = cur.fetchall()
             return count_data
 
-    @staticmethod
-    def __insert_new_domain(cursor, site):
-        columns = 'total, daily, monthly, yearly, last_id, domain, last_visit'
-        cursor.execute('INSERT INTO count_visits (%s) VALUE (%s,%s,%s,%s,%s,"%s","%s")'
-                       %(columns, 0, 0, 0, 0, 0, site, '01.01.1970'))
-
-    def __check_domain_exist(self, cursor):
-        cursor.execute('SELECT * FROM count_visits WHERE domain=%s', self.site)
-        data = cursor.fetchall()
-        if data == ():
-            self.__insert_new_domain(cursor, self.site)
-
-    def update_data(self, count_data):
-        with self.connection:
-            cur = self.connection.cursor()
-            for key in const.keys_storage:
-                cur.execute('UPDATE count_visits SET %s="%s" WHERE domain="%s"' % (key, count_data[key], self.site))
+    # def insert_data(self, count_data):
+    #     with self.connection:
+    #         cur = self.connection.cursor()
+    #         for key in const.keys_storage:
+    #             cur.execute('UPDATE count_visits SET %s="%s" WHERE domain="%s"' % (key, count_data[key], self.site))
 
     def get_data_by(self, column_to_select):
         if not const.check_in_keys_meta(column_to_select):
             return []
         with self.connection:
             cur = self.connection.cursor()
-            cur.execute('SELECT %s FROM user_visits WHERE domain="%s"' % (column_to_select, self.site))
+            cur.execute('SELECT %s FROM visits WHERE domain="%s"' % (column_to_select, self.site))
             data = cur.fetchall()
             data_to_get = []
             for item in list(data):
                 data_to_get.append(item[column_to_select])
             return data_to_get
 
-    def insert_data(self, path, user_id, date, user_agent, domain):
+    def update_data(self, path, user_id, date, user_agent, domain):
         with self.connection:
             cur = self.connection.cursor()
             columns = 'path, id, date, user_agent, domain'
-            cur.execute("INSERT INTO user_visits (%s) VALUE ('%s', '%s', '%s', '%s', '%s')"
+            cur.execute("INSERT INTO visits (%s) VALUE ('%s', '%s', '%s', '%s', '%s')"
                         % (columns, path, user_id, date, user_agent, domain))
 
 
@@ -79,34 +69,48 @@ class FileStorage(AbstractStorage):
     def __init__(self, site):
         self.site = site
 
-    def _check_file_exists(self, file_from, def_dict=const.default_dict):
-        if not os.path.exists(file_from):
-            with open(file_from, 'w+') as write_file:
-                json.dump(def_dict, write_file)
+    def check_file_exists(self, file_from, def_dict=const.default_dict):
+        try:
+            if not os.path.exists(file_from):
+                with open(file_from, 'w+') as write_file:
+                    json.dump(def_dict, write_file)
+        except:
+            raise errors.CreateFileError
 
     def load_data(self):
-        self._check_file_exists(self.site)
+        self.check_file_exists(self.site)
         with open(self.site, 'r') as read_file:
             return json.load(read_file)
 
-    def update_data(self, count_data):
+    def update_data(self, path, user_id, date, user_agent, domain):
+        data = self.load_data()
+        metadata = const.get_meta_dict(
+            user_id=user_id,
+            date=date,
+            path=path,
+            domain=domain,
+            user_agent=user_agent)
+        data['meta'].append(metadata)
         with open(self.site, 'w+') as write_file:
-            json.dump(count_data, write_file)
+            json.dump(data, write_file)
 
     def get_data_by(self, column_name):
+        if not const.check_in_keys_meta(column_name):
+            return []
         data = self.load_data()
         data_to_get = []
         for item in data['meta']:
             data_to_get.append(item[column_name])
         return data_to_get
 
-    def insert_data(self, metadata):    
-        pass
 
-
-def check_type(type_storage, file_data, domain):
+def check_type(type_storage, connection_kwargs, domain):
     if type_storage == const.StorageType('sql'):
-        return MySQLStorage(file_data, domain)
+        storage = MySQLStorage(domain)
+        storage.connect(**connection_kwargs)
+        return storage
     if type_storage == const.StorageType('file'):
-        return FileStorage(domain)
+        storage = FileStorage(domain)
+        storage.check_file_exists(domain)
+        return storage
     raise IOError

@@ -8,17 +8,9 @@ git clone https://github.com/Ferocius-Gosling/visit_counter.git
 pip install -r requirements.txt 
 ```
 - если планируется использование sql-хранилища, необходимо предварительно создать
-базу данных с двумя таблицами 'count_visits' и 'user_visits'
+базу данных с таблицей `visits`
 
-
-- содержимое таблицы `count_visits`
-- столбцы total, daily, monthly, yearly, last_id должны иметь тип int
-- столбцы domain и last_visit должны иметь тип varchar
-
-| total | daily | monthly | yearly | last_id | domain | last_visit |
-|-------|-------|---------|--------|---------|--------|------------| 
-
-- содержимое таблицы `user_visits`
+- содержимое таблицы `visits`
 - все столбцы должны иметь тип varchar
 
 | path | id | date | user_agent | domain |
