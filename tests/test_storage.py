@@ -14,7 +14,9 @@ def mysql_storage():
 
 @pytest.fixture()
 def file_storage():
-    return FileStorage('test_storage')
+    storage = FileStorage('test_storage')
+    storage.connect(file_from='test_storage')
+    return storage
 
 
 def test_check_type_correctly_file():
@@ -29,8 +31,9 @@ def test_check_type_correctly_sql():
     assert storage is not None
     assert isinstance(storage, MySQLStorage)
 
+
 def test_check_file_is_exist(file_storage):
-    some_dict = { 'foo': 'bar' }
+    some_dict = {'foo': 'bar'}
     file_storage.check_file_exists('test_exist', some_dict)
     assert os.path.exists('test_exist')
     os.remove('test_exist')
@@ -50,9 +53,10 @@ def test_upload_data_file(file_storage):
 
 
 def test_get_data_by_something_file(file_storage):
-    some_data = file_storage.get_data_by('foo')
-    assert isinstance(some_data, list)
-    assert len(some_data) == 0
+    try:
+        file_storage.get_data_by('foo')
+    except errors.InvalidArgumentError:
+        assert True
 
 
 def test_get_data_by_some_value_file(file_storage):
@@ -74,6 +78,15 @@ def test_connection_failed():
     try:
         storage.connect(host='localhost', user='root')
     except errors.ConnectionError as e:
+        assert e.http_code == 400
+        assert e.message is not None
+
+
+def test_wrong_connection_args():
+    storage = MySQLStorage('test_failed')
+    try:
+        storage.connect(hostn='localhost')
+    except errors.SQLConnectionArgsError as e:
         assert e.http_code == 400
         assert e.message is not None
 

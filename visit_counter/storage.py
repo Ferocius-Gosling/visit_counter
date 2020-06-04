@@ -66,7 +66,7 @@ class MySQLStorage(AbstractStorage):
 
     def get_data_by(self, column_to_select):
         if not const.check_in_keys_meta(column_to_select):
-            return []
+            raise errors.InvalidArgumentError(column_to_select)
         with self.connection:
             cur = self.connection.cursor()
             cur.execute('SELECT %s FROM visits WHERE domain="%s"' % (column_to_select, self.site))
@@ -96,7 +96,7 @@ class FileStorage(AbstractStorage):
             data = self.load_data()
             flag = data['meta']
         except KeyError:
-            raise errors.ConnectionArgsError()
+            raise errors.FileStructureError()
         except:
             raise errors.CreateFileError()
 
@@ -116,13 +116,13 @@ class FileStorage(AbstractStorage):
         with open(self.site, 'w+') as write_file:
             json.dump(data, write_file)
 
-    def get_data_by(self, column_name):
-        if not const.check_in_keys_meta(column_name):
-            return []
+    def get_data_by(self, column_to_select):
+        if not const.check_in_keys_meta(column_to_select):
+            raise errors.InvalidArgumentError(column_to_select)
         data = self.load_data()
         data_to_get = []
         for item in data['meta']:
-            data_to_get.append(item[column_name])
+            data_to_get.append(item[column_to_select])
         return data_to_get
 
 
