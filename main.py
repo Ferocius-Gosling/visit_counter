@@ -31,4 +31,7 @@ if __name__ == '__main__':
     except errors.APIError as e:
         print(f'error: {e.message}')
         exit(1)
+    except errors.SetUpError as e:
+        print(f'error {e.message}')
+        exit(1)
 

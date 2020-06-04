@@ -49,7 +49,7 @@ class MySQLStorage(AbstractStorage):
                                db=connect_kwargs['db_name'],
                                cursorclass=pymysql.cursors.DictCursor)
         except KeyError:
-            raise errors.ConnectionArgsError()
+            raise errors.SQLConnectionArgsError()
         except:
             raise errors.ConnectionError()
         try:

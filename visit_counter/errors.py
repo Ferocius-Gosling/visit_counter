@@ -5,7 +5,7 @@ class APIError(Exception):
 
 class SetUpError(Exception):
     http_code = 500
-    message : str
+    message: str
 
 
 class ConnectionError(SetUpError):
@@ -18,6 +18,19 @@ class CreateFileError(SetUpError):
     message = 'Create file error.'
 
 
-class ConnectionArgsError(APIError):
+class SQLConnectionArgsError(SetUpError):
     http_code = 400
-    message = 'Wrong connection args'
+    message = 'Not found host/user/pass/db-name. Check your database connection settings'
+
+
+class FileStructureError(SetUpError):
+    http_code = 400
+    message = 'File contains invalid json-body'
+
+
+class InvalidArgumentError(APIError):
+    def __init__(self, argument):
+        self.message = self.message.format(argument)
+
+    http_code = 400
+    message = 'Invalid argument {}'
