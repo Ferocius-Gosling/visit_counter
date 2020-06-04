@@ -6,6 +6,9 @@ from visit_counter import const, errors
 
 
 class AbstractStorage(abc.ABC):
+    def connect(self, connect_kwargs):
+        raise NotImplementedError
+
     def load_data(self):
         raise NotImplementedError
 
@@ -21,6 +24,22 @@ class MySQLStorage(AbstractStorage):
         self.connection = None
         self.site = site
 
+    def __check_table(self):
+        with self.connection:
+            cur = self.connection.cursor()
+            cur.execute('SELECT 1 FROM visits')
+            cur.fetchall()
+
+    def __create_table(self):
+        with self.connection:
+            cur = self.connection.cursor()
+            s = 'path VARCHAR(64) NOT NULL, ' \
+                'id VARCHAR(64) NOT NULL, ' \
+                'date VARCHAR(16) NOT NULL, ' \
+                'user_agent VARCHAR(136) NOT NULL' \
+                'domain VARCHAR(64) NOT NULL'
+            cur.execute('CREATE TABLE visits (%s)' % s)
+
     def connect(self, **connect_kwargs):
         try:
             self.connection = pymysql.connect(
@@ -29,8 +48,14 @@ class MySQLStorage(AbstractStorage):
                                password=connect_kwargs['password'],
                                db=connect_kwargs['db_name'],
                                cursorclass=pymysql.cursors.DictCursor)
+        except KeyError:
+            raise errors.ConnectionArgsError()
         except:
             raise errors.ConnectionError()
+        try:
+            self.__check_table()
+        except pymysql.err.ProgrammingError:
+            self.__create_table()
 
     def load_data(self):
         with self.connection:
@@ -38,12 +63,6 @@ class MySQLStorage(AbstractStorage):
             cur.execute('SELECT * FROM visits WHERE domain=%s', self.site)
             count_data = cur.fetchall()
             return count_data
-
-    # def insert_data(self, count_data):
-    #     with self.connection:
-    #         cur = self.connection.cursor()
-    #         for key in const.keys_storage:
-    #             cur.execute('UPDATE count_visits SET %s="%s" WHERE domain="%s"' % (key, count_data[key], self.site))
 
     def get_data_by(self, column_to_select):
         if not const.check_in_keys_meta(column_to_select):
@@ -69,16 +88,19 @@ class FileStorage(AbstractStorage):
     def __init__(self, site):
         self.site = site
 
-    def check_file_exists(self, file_from, def_dict=const.default_dict):
+    def connect(self, file_from, def_dict=const.default_dict):
         try:
             if not os.path.exists(file_from):
                 with open(file_from, 'w+') as write_file:
                     json.dump(def_dict, write_file)
+            data = self.load_data()
+            flag = data['meta']
+        except KeyError:
+            raise errors.ConnectionArgsError()
         except:
-            raise errors.CreateFileError
+            raise errors.CreateFileError()
 
     def load_data(self):
-        self.check_file_exists(self.site)
         with open(self.site, 'r') as read_file:
             return json.load(read_file)
 
@@ -105,12 +127,11 @@ class FileStorage(AbstractStorage):
 
 
 def check_type(type_storage, connection_kwargs, domain):
+    storage = None
     if type_storage == const.StorageType('sql'):
         storage = MySQLStorage(domain)
-        storage.connect(**connection_kwargs)
-        return storage
-    if type_storage == const.StorageType('file'):
+    elif type_storage == const.StorageType('file'):
         storage = FileStorage(domain)
-        storage.check_file_exists(domain)
-        return storage
-    raise IOError
+        connection_kwargs = {'file_from' : domain}
+    storage.connect(**connection_kwargs)
+    return storage

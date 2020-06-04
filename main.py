@@ -1,9 +1,9 @@
 import argparse
 from config import base
-from visit_counter import const
+from visit_counter import const, errors
 
 
-def main():
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', '-H', default='127.0.0.1', help='web-server host')
     parser.add_argument('--port', '-p', default=5000, help='web-server port')
@@ -23,11 +23,12 @@ def main():
         'password': namespace.db_password,
         'db_name': namespace.db_name,
     }
-    from visit_counter.web import app
+    try:
+        from visit_counter.web import app
 
-    app.secret_key = base.SECRET_KEY
-    app.run(host=namespace.host, port=namespace.port, debug=namespace.debug)
+        app.secret_key = base.SECRET_KEY
+        app.run(host=namespace.host, port=namespace.port, debug=namespace.debug)
+    except errors.APIError as e:
+        print(f'error: {e.message}')
+        exit(1)
 
-
-if __name__ == '__main__':
-    main()

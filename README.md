@@ -8,13 +8,7 @@ git clone https://github.com/Ferocius-Gosling/visit_counter.git
 pip install -r requirements.txt 
 ```
 - если планируется использование sql-хранилища, необходимо предварительно создать
-базу данных с таблицей `visits`
-
-- содержимое таблицы `visits`
-- все столбцы должны иметь тип varchar
-
-| path | id | date | user_agent | domain |
-|------|----|------|------------|--------| 
+базу данных 
 
 #### Для запуска:
 - python web.py [--host, --port, --debug, --help, --storage]
