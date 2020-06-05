@@ -2,7 +2,7 @@ import pymysql
 import json
 import abc
 import os
-from visit_counter import const, errors
+from visit_counter import const, errors, utils
 
 
 class AbstractStorage(abc.ABC):
@@ -72,7 +72,7 @@ class MySQLStorage(AbstractStorage):
             return count_data
 
     def get_data_by(self, column_to_select):
-        if not const.check_in_keys_meta(column_to_select):
+        if not utils.check_in_keys_meta(column_to_select):
             raise errors.InvalidArgumentError(column_to_select)
         with self.connection:
             cur = self.connection.cursor()
@@ -117,7 +117,7 @@ class FileStorage(AbstractStorage):
 
     def update_data(self, path, user_id, date, user_agent, domain):
         data = self.load_data()
-        metadata = const.get_meta_dict(
+        metadata = utils.get_meta_dict(
             user_id=user_id,
             date=date,
             path=path,
@@ -128,7 +128,7 @@ class FileStorage(AbstractStorage):
             json.dump(data, write_file)
 
     def get_data_by(self, column_to_select):
-        if not const.check_in_keys_meta(column_to_select):
+        if not utils.check_in_keys_meta(column_to_select):
             raise errors.InvalidArgumentError(column_to_select)
         data = self.load_data()
         data_to_get = []

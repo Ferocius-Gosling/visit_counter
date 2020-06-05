@@ -1,4 +1,4 @@
-from visit_counter.counter import VisitCounter, get_date
+from visit_counter.counter import VisitCounter
 from visit_counter.const import default_kwargs, TimeSection
 from visit_counter.storage import FileStorage, MySQLStorage
 import uuid
