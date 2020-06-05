@@ -24,19 +24,19 @@ class MySQLStorage(AbstractStorage):
         self.connection = None
         self.site = site
 
-    def __check_table(self):
+    def check_table(self):
         with self.connection:
             cur = self.connection.cursor()
             cur.execute('SELECT 1 FROM visits')
             cur.fetchall()
 
-    def __create_table(self):
+    def create_table(self):
         with self.connection:
             cur = self.connection.cursor()
             s = 'path VARCHAR(64) NOT NULL, ' \
                 'id VARCHAR(64) NOT NULL, ' \
                 'date VARCHAR(16) NOT NULL, ' \
-                'user_agent VARCHAR(136) NOT NULL' \
+                'user_agent VARCHAR(136) NOT NULL, ' \
                 'domain VARCHAR(64) NOT NULL'
             cur.execute('CREATE TABLE visits (%s)' % s)
 
@@ -53,9 +53,9 @@ class MySQLStorage(AbstractStorage):
         except:
             raise errors.ConnectionError()
         try:
-            self.__check_table()
+            self.check_table()
         except pymysql.err.ProgrammingError:
-            self.__create_table()
+            self.create_table()
 
     def load_data(self):
         with self.connection:
@@ -132,6 +132,6 @@ def check_type(type_storage, connection_kwargs, domain):
         storage = MySQLStorage(domain)
     elif type_storage == const.StorageType('file'):
         storage = FileStorage(domain)
-        connection_kwargs = {'file_from' : domain}
+        connection_kwargs = {'file_from': domain}
     storage.connect(**connection_kwargs)
     return storage

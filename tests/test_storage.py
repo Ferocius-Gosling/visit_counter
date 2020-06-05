@@ -92,6 +92,19 @@ def test_wrong_connection_args():
         assert e.message is not None
 
 
+def test_check_table():
+    storage = MySQLStorage('test_check')
+    storage.connect(host='db4free.net',
+                    user='test_check_table',
+                    password='qwerty1234',
+                    db_name='testcountdata')
+    storage.update_data('/test_storage1', '1', '01.01.0001', 'Mozilla/5.0', storage.site)
+    assert storage.get_data_by('id') is not None
+    with storage.connection:
+        cur = storage.connection.cursor()
+        cur.execute('DROP TABLE visits')
+
+
 def test_load_data_sql(mysql_storage):
     some_data = mysql_storage.load_data()[0]
     assert some_data is not None
