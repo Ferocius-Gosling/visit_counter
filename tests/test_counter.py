@@ -3,20 +3,19 @@ from visit_counter.const import default_kwargs, TimeSection
 from visit_counter.storage import FileStorage, MySQLStorage
 import uuid
 import pytest
-import os
 
 
 @pytest.fixture()
 def test_counter():
-    storage = FileStorage('test')
-    storage.connect(file_from='test')
+    storage = FileStorage('test', file_from='test')
+    storage.connect()
     return VisitCounter(storage)
 
 
 @pytest.fixture()
 def counter_file():
-    storage = MySQLStorage('test')
-    storage.connect(**default_kwargs)
+    storage = MySQLStorage('test', **default_kwargs)
+    storage.connect()
     return VisitCounter(storage)
 
 

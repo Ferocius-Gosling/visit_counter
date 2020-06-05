@@ -18,6 +18,11 @@ class CreateFileError(SetUpError):
     message = 'Create file error.'
 
 
+class FileConnectionArgsError(SetUpError):
+    http_code = 400
+    message = 'Not found file_from. Check your connection settings'
+
+
 class SQLConnectionArgsError(SetUpError):
     http_code = 400
     message = 'Not found host/user/pass/db-name. Check your database connection settings'
@@ -34,3 +39,4 @@ class InvalidArgumentError(APIError):
 
     http_code = 400
     message = 'Invalid argument {}'
+

@@ -6,7 +6,7 @@ from visit_counter import const, errors
 
 
 class AbstractStorage(abc.ABC):
-    def connect(self, connect_kwargs):
+    def connect(self):
         raise NotImplementedError
 
     def load_data(self):
@@ -20,9 +20,16 @@ class AbstractStorage(abc.ABC):
 
 
 class MySQLStorage(AbstractStorage):
-    def __init__(self, site):
+    def __init__(self, site, **connection_kwargs):
         self.connection = None
         self.site = site
+        try:
+            self.host = connection_kwargs['host']
+            self.user = connection_kwargs['user']
+            self.password = connection_kwargs['password']
+            self.db = connection_kwargs['db_name']
+        except KeyError:
+            raise errors.SQLConnectionArgsError()
 
     def check_table(self):
         with self.connection:
@@ -33,23 +40,23 @@ class MySQLStorage(AbstractStorage):
     def create_table(self):
         with self.connection:
             cur = self.connection.cursor()
-            s = 'path VARCHAR(64) NOT NULL, ' \
-                'id VARCHAR(64) NOT NULL, ' \
-                'date VARCHAR(16) NOT NULL, ' \
-                'user_agent VARCHAR(136) NOT NULL, ' \
-                'domain VARCHAR(64) NOT NULL'
-            cur.execute('CREATE TABLE visits (%s)' % s)
+            cur.execute('''
+                CREATE TABLE visits (
+                path VARCHAR(64) NOT NULL, 
+                id VARCHAR(64) NOT NULL, 
+                date VARCHAR(16) NOT NULL, 
+                user_agent VARCHAR(136) NOT NULL, 
+                domain VARCHAR(64) NOT NULL)
+                ''')
 
-    def connect(self, **connect_kwargs):
+    def connect(self):
         try:
             self.connection = pymysql.connect(
-                               host=connect_kwargs['host'],
-                               user=connect_kwargs['user'],
-                               password=connect_kwargs['password'],
-                               db=connect_kwargs['db_name'],
-                               cursorclass=pymysql.cursors.DictCursor)
-        except KeyError:
-            raise errors.SQLConnectionArgsError()
+                    host=self.host,
+                    user=self.user,
+                    password=self.password,
+                    db=self.db,
+                    cursorclass=pymysql.cursors.DictCursor)
         except:
             raise errors.ConnectionError()
         try:
@@ -85,15 +92,20 @@ class MySQLStorage(AbstractStorage):
 
 
 class FileStorage(AbstractStorage):
-    def __init__(self, site):
+    def __init__(self, site, **connection_kwargs):
         self.site = site
-
-    def connect(self, file_from, def_dict=const.default_dict):
         try:
-            if not os.path.exists(file_from):
-                with open(file_from, 'w+') as write_file:
-                    json.dump(def_dict, write_file)
+            self.file_from = connection_kwargs['file_from']
+        except KeyError:
+            raise errors.FileConnectionArgsError()
+
+    def connect(self):
+        try:
+            if not os.path.exists(self.file_from):
+                with open(self.file_from, 'w+') as write_file:
+                    json.dump(const.default_dict, write_file)
             data = self.load_data()
+            print(data)
             flag = data['meta']
         except KeyError:
             raise errors.FileStructureError()
@@ -101,7 +113,7 @@ class FileStorage(AbstractStorage):
             raise errors.CreateFileError()
 
     def load_data(self):
-        with open(self.site, 'r') as read_file:
+        with open(self.file_from, 'r') as read_file:
             return json.load(read_file)
 
     def update_data(self, path, user_id, date, user_agent, domain):
@@ -113,7 +125,7 @@ class FileStorage(AbstractStorage):
             domain=domain,
             user_agent=user_agent)
         data['meta'].append(metadata)
-        with open(self.site, 'w+') as write_file:
+        with open(self.file_from, 'w+') as write_file:
             json.dump(data, write_file)
 
     def get_data_by(self, column_to_select):
@@ -122,16 +134,17 @@ class FileStorage(AbstractStorage):
         data = self.load_data()
         data_to_get = []
         for item in data['meta']:
-            data_to_get.append(item[column_to_select])
+            if item['domain'] == self.site:
+                data_to_get.append(item[column_to_select])
         return data_to_get
 
 
 def check_type(type_storage, connection_kwargs, domain):
     storage = None
     if type_storage == const.StorageType('sql'):
-        storage = MySQLStorage(domain)
+        storage = MySQLStorage(domain, **connection_kwargs)
     elif type_storage == const.StorageType('file'):
-        storage = FileStorage(domain)
-        connection_kwargs = {'file_from': domain}
-    storage.connect(**connection_kwargs)
+        connection_kwargs = {'file_from': 'count_data'}
+        storage = FileStorage(domain, **connection_kwargs)
+    storage.connect()
     return storage

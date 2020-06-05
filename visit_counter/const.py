@@ -55,6 +55,7 @@ default_kwargs = {
     'db_name': 'count_data'
 }
 
+
 keys_storage = ['total', 'yearly', 'monthly',
                 'daily', 'last_id', 'domain', 'last_visit']
 

@@ -7,15 +7,15 @@ from visit_counter.storage import FileStorage, MySQLStorage, check_type
 
 @pytest.fixture()
 def mysql_storage():
-    storage = MySQLStorage('test_storage')
-    storage.connect(**const.default_kwargs)
+    storage = MySQLStorage('test_storage', **const.default_kwargs)
+    storage.connect()
     return storage
 
 
 @pytest.fixture()
 def file_storage():
-    storage = FileStorage('test_storage')
-    storage.connect(file_from='test_storage')
+    storage = FileStorage('test_storage', file_from='count_data')
+    storage.connect()
     return storage
 
 
@@ -23,7 +23,7 @@ def test_check_type_correctly_file():
     storage = check_type(const.StorageType('file'), const.default_kwargs, 'test_type')
     assert storage is not None
     assert isinstance(storage, FileStorage)
-    os.remove('test_type')
+    assert storage.site == 'test_type'
 
 
 def test_check_type_correctly_sql():
@@ -32,11 +32,11 @@ def test_check_type_correctly_sql():
     assert isinstance(storage, MySQLStorage)
 
 
-def test_check_file_is_exist(file_storage):
-    some_dict = {'foo': 'bar'}
-    file_storage.connect('test_exist', some_dict)
-    assert os.path.exists('test_exist')
-    os.remove('test_exist')
+def test_check_file_is_exist():
+    storage = FileStorage('test_exists', file_from='test_exists')
+    storage.connect()
+    assert os.path.exists('test_exists')
+    os.remove('test_exists')
 
 
 def test_load_data_file(file_storage):
@@ -75,29 +75,33 @@ def test_connection_success(mysql_storage):
 
 
 def test_connection_failed():
-    storage = MySQLStorage('test_failed')
+    storage = MySQLStorage('test_failed',
+                           host='localhost',
+                           user='root',
+                           password='root',
+                           db_name='name')
     try:
-        storage.connect(host='localhost', user='root', password='root', db_name='name')
+        storage.connect()
     except errors.ConnectionError as e:
         assert e.http_code == 400
         assert e.message is not None
 
 
 def test_wrong_connection_args():
-    storage = MySQLStorage('test_failed')
     try:
-        storage.connect(hostn='localhost')
+        storage = MySQLStorage('test_failed', hostn='localhost')
     except errors.SQLConnectionArgsError as e:
         assert e.http_code == 400
         assert e.message is not None
 
 
 def test_check_table():
-    storage = MySQLStorage('test_check')
-    storage.connect(host='db4free.net',
-                    user='test_check_table',
-                    password='qwerty1234',
-                    db_name='testcountdata')
+    storage = MySQLStorage('test_check',
+                           host='db4free.net',
+                           user='test_check_table',
+                           password='qwerty1234',
+                           db_name='testcountdata')
+    storage.connect()
     storage.update_data('/test_storage1', '1', '01.01.0001', 'Mozilla/5.0', storage.site)
     assert storage.get_data_by('id') is not None
     with storage.connection:
