@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture()
 def test_counter():
-    storage = FileStorage('test', file_from='test')
+    storage = FileStorage('test', db_name='test')
     storage.connect()
     return VisitCounter(storage)
 

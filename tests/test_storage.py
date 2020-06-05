@@ -14,7 +14,7 @@ def mysql_storage():
 
 @pytest.fixture()
 def file_storage():
-    storage = FileStorage('test_storage', file_from='count_data')
+    storage = FileStorage('test_storage', db_name='count_data')
     storage.connect()
     return storage
 
@@ -33,7 +33,7 @@ def test_check_type_correctly_sql():
 
 
 def test_check_file_is_exist():
-    storage = FileStorage('test_exists', file_from='test_exists')
+    storage = FileStorage('test_exists', db_name='test_exists')
     storage.connect()
     assert os.path.exists('test_exists')
     os.remove('test_exists')

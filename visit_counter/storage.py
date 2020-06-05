@@ -95,7 +95,7 @@ class FileStorage(AbstractStorage):
     def __init__(self, site, **connection_kwargs):
         self.site = site
         try:
-            self.file_from = connection_kwargs['file_from']
+            self.file_from = connection_kwargs['db_name']
         except KeyError:
             raise errors.FileConnectionArgsError()
 
@@ -105,7 +105,6 @@ class FileStorage(AbstractStorage):
                 with open(self.file_from, 'w+') as write_file:
                     json.dump(const.default_dict, write_file)
             data = self.load_data()
-            print(data)
             flag = data['meta']
         except KeyError:
             raise errors.FileStructureError()
@@ -144,7 +143,6 @@ def check_type(type_storage, connection_kwargs, domain):
     if type_storage == const.StorageType('sql'):
         storage = MySQLStorage(domain, **connection_kwargs)
     elif type_storage == const.StorageType('file'):
-        connection_kwargs = {'file_from': 'count_data'}
         storage = FileStorage(domain, **connection_kwargs)
     storage.connect()
     return storage
