@@ -34,7 +34,7 @@ def test_check_type_correctly_sql():
 
 def test_check_file_is_exist(file_storage):
     some_dict = {'foo': 'bar'}
-    file_storage.check_file_exists('test_exist', some_dict)
+    file_storage.connect('test_exist', some_dict)
     assert os.path.exists('test_exist')
     os.remove('test_exist')
 
@@ -55,8 +55,9 @@ def test_upload_data_file(file_storage):
 def test_get_data_by_something_file(file_storage):
     try:
         file_storage.get_data_by('foo')
-    except errors.InvalidArgumentError:
-        assert True
+    except errors.InvalidArgumentError as e:
+        assert e.http_code == 400
+        assert isinstance(e, errors.APIError)
 
 
 def test_get_data_by_some_value_file(file_storage):
@@ -76,7 +77,7 @@ def test_connection_success(mysql_storage):
 def test_connection_failed():
     storage = MySQLStorage('test_failed')
     try:
-        storage.connect(host='localhost', user='root')
+        storage.connect(host='localhost', user='root', password='root', db_name='name')
     except errors.ConnectionError as e:
         assert e.http_code == 400
         assert e.message is not None
@@ -106,9 +107,11 @@ def test_update_data_sql(mysql_storage):
 
 
 def test_get_data_by_something_sql(mysql_storage):
-    data = mysql_storage.get_data_by('foo')
-    assert isinstance(data, list)
-    assert len(data) == 0
+    try:
+        data = mysql_storage.get_data_by('foo')
+    except errors.InvalidArgumentError as e:
+        assert e.http_code == 400
+        assert isinstance(e, errors.APIError)
 
 
 def test_get_data_by_value_sql(mysql_storage):

@@ -9,7 +9,7 @@ import os
 @pytest.fixture()
 def test_counter():
     storage = FileStorage('test')
-    storage.check_file_exists('test')
+    storage.connect(file_from='test')
     return VisitCounter(storage)
 
 
