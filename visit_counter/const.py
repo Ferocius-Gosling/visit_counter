@@ -31,29 +31,13 @@ class StorageType(Enum):
         return self.value
 
 
-def get_meta_dict(**meta_kwargs):
-    meta = dict()
-    meta['id'] = meta_kwargs['user_id']
-    meta['date'] = meta_kwargs['date']
-    meta['path'] = meta_kwargs['path']
-    meta['domain'] = meta_kwargs['domain']
-    meta['user_agent'] = meta_kwargs['user_agent']
-    return meta
-
-
-def check_in_keys_meta(name):
-    for key in keys_meta:
-        if key == name:
-            return True
-    return False
-
-
 default_kwargs = {
     'host': 'db4free.net',
     'user': 'ferocius_gos',
     'password': 'qwerty1234',
     'db_name': 'count_data'
 }
+
 
 keys_storage = ['total', 'yearly', 'monthly',
                 'daily', 'last_id', 'domain', 'last_visit']
