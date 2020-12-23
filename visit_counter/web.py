@@ -1,12 +1,12 @@
-import functools
 from flask import Flask, render_template, request
 from visit_counter.counter import VisitCounter
-from visit_counter import storage, errors, const
+from visit_counter import storage, const
 from config import base
 
 
 app = Flask(__name__)
-data_storage = storage.check_type(base.STORAGE_TYPE, base.CONNECT_KWARGS, base.HOSTNAME)
+data_storage = storage.check_type(base.STORAGE_TYPE, base.CONNECT_KWARGS,
+                                  base.HOSTNAME)
 counter = VisitCounter(data_storage)
 
 

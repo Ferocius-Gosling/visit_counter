@@ -8,7 +8,8 @@ class VisitCounter:
         self.data_storage = data_storage
 
     def make_visit(self, path, user_id, user_agent, domain):
-        self.data_storage.update_data(path, user_id, utils.get_date(), user_agent, domain)
+        self.data_storage.update_data(path, user_id, utils.get_date(),
+                                      user_agent, domain)
 
     def get_unique_user_stats(self):
         data = self.data_storage.get_data_by('id')
@@ -25,4 +26,3 @@ class VisitCounter:
         manager = StatUserManager(selected_data)
         stats = manager.count(user_id)
         return stats
-

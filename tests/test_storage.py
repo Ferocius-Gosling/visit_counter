@@ -20,14 +20,16 @@ def file_storage():
 
 
 def test_check_type_correctly_file():
-    storage = check_type(const.StorageType('file'), const.default_kwargs, 'test_type')
+    storage = check_type(const.StorageType('file'), const.default_kwargs,
+                         'test_type')
     assert storage is not None
     assert isinstance(storage, FileStorage)
     assert storage.site == 'test_type'
 
 
 def test_check_type_correctly_sql():
-    storage = check_type(const.StorageType('sql'), const.default_kwargs, 'test_type')
+    storage = check_type(const.StorageType('sql'), const.default_kwargs,
+                         'test_type')
     assert storage is not None
     assert isinstance(storage, MySQLStorage)
 
@@ -47,7 +49,8 @@ def test_load_data_file(file_storage):
 
 
 def test_upload_data_file(file_storage):
-    file_storage.update_data('/test','1','01.01.0001', 'Mozilla/5.0', file_storage.site)
+    file_storage.update_data('/test', '1', '01.01.0001',
+                             'Mozilla/5.0', file_storage.site)
     assert os.path.exists(file_storage.site)
     assert file_storage.get_data_by('path') is not None
 
@@ -63,7 +66,8 @@ def test_get_data_by_something_file(file_storage):
 def test_get_data_by_some_value_file(file_storage):
     test1 = len(file_storage.get_data_by('id'))
     unique_id = str(uuid.uuid4())
-    file_storage.update_data('/test',unique_id,'01.01.0001', 'Mozilla/5.0', file_storage.site)
+    file_storage.update_data('/test', unique_id, '01.01.0001',
+                             'Mozilla/5.0', file_storage.site)
     data_to_get = file_storage.get_data_by('id')
     assert isinstance(data_to_get, list)
     assert len(data_to_get) == test1 + 1
@@ -89,7 +93,7 @@ def test_connection_failed():
 
 def test_wrong_connection_args():
     try:
-        storage = MySQLStorage('test_failed', hostn='localhost')
+        MySQLStorage('test_failed', hostn='localhost')
     except errors.SQLConnectionArgsError as e:
         assert e.http_code == 400
         assert e.message is not None
@@ -102,7 +106,8 @@ def test_check_table():
                            password='qwerty1234',
                            db_name='testcountdata')
     storage.connect()
-    storage.update_data('/test_storage1', '1', '01.01.0001', 'Mozilla/5.0', storage.site)
+    storage.update_data('/test_storage1', '1', '01.01.0001',
+                        'Mozilla/5.0', storage.site)
     assert storage.get_data_by('id') is not None
     with storage.connection:
         cur = storage.connection.cursor()
@@ -116,7 +121,8 @@ def test_load_data_sql(mysql_storage):
 
 
 def test_update_data_sql(mysql_storage):
-    mysql_storage.update_data('/test_storage1', '1', '01.01.0001', 'Mozilla/5.0', mysql_storage.site)
+    mysql_storage.update_data('/test_storage1', '1', '01.01.0001',
+                              'Mozilla/5.0', mysql_storage.site)
     some_data = mysql_storage.get_data_by('date')
     assert some_data is not None
     assert len(some_data) != 0
@@ -125,7 +131,7 @@ def test_update_data_sql(mysql_storage):
 
 def test_get_data_by_something_sql(mysql_storage):
     try:
-        data = mysql_storage.get_data_by('foo')
+        mysql_storage.get_data_by('foo')
     except errors.InvalidArgumentError as e:
         assert e.http_code == 400
         assert isinstance(e, errors.APIError)
@@ -137,4 +143,3 @@ def test_get_data_by_value_sql(mysql_storage):
     assert isinstance(data, list)
     assert len(data) != 0
     assert data[0] == '/test_storage1'
-

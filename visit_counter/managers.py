@@ -7,7 +7,8 @@ class StatDateManager(StatManager):
     def count(self, time_section, date_to_check):
         stat = 0
         for visit in self.data:
-            if visit[time_section.value:] == date_to_check[time_section.value:]:
+            if visit[time_section.value:] == \
+                    date_to_check[time_section.value:]:
                 stat += 1
         return stat
 

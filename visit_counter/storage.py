@@ -40,24 +40,20 @@ class MySQLStorage(AbstractStorage):
     def create_table(self):
         with self.connection:
             cur = self.connection.cursor()
-            cur.execute('''
-                CREATE TABLE visits (
-                path VARCHAR(64) NOT NULL, 
-                id VARCHAR(64) NOT NULL, 
-                date VARCHAR(16) NOT NULL, 
-                user_agent VARCHAR(136) NOT NULL, 
-                domain VARCHAR(64) NOT NULL)
-                ''')
+            cur.execute("CREATE TABLE visits (path VARCHAR(64) NOT NULL,"
+                        " id VARCHAR(64) NOT NULL, date VARCHAR(16) NOT NULL,"
+                        " user_agent VARCHAR(136) NOT NULL, domain VARCHAR(64)"
+                        " NOT NULL)")
 
     def connect(self):
         try:
             self.connection = pymysql.connect(
-                    host=self.host,
-                    user=self.user,
-                    password=self.password,
-                    db=self.db,
-                    cursorclass=pymysql.cursors.DictCursor)
-        except:
+                host=self.host,
+                user=self.user,
+                password=self.password,
+                db=self.db,
+                cursorclass=pymysql.cursors.DictCursor)
+        except pymysql.err.DatabaseError:
             raise errors.ConnectionError()
         try:
             self.check_table()
@@ -76,7 +72,8 @@ class MySQLStorage(AbstractStorage):
             raise errors.InvalidArgumentError(column_to_select)
         with self.connection:
             cur = self.connection.cursor()
-            cur.execute('SELECT %s FROM visits WHERE domain="%s"' % (column_to_select, self.site))
+            cur.execute('SELECT %s FROM visits WHERE domain="%s"'
+                        % (column_to_select, self.site))
             data = cur.fetchall()
             data_to_get = []
             for item in list(data):
@@ -87,7 +84,8 @@ class MySQLStorage(AbstractStorage):
         with self.connection:
             cur = self.connection.cursor()
             columns = 'path, id, date, user_agent, domain'
-            cur.execute("INSERT INTO visits (%s) VALUE ('%s', '%s', '%s', '%s', '%s')"
+            cur.execute("INSERT INTO visits (%s) VALUE ('%s', '%s', '%s',"
+                        " '%s', '%s')"
                         % (columns, path, user_id, date, user_agent, domain))
 
 
@@ -104,11 +102,9 @@ class FileStorage(AbstractStorage):
             if not os.path.exists(self.file_from):
                 with open(self.file_from, 'w+') as write_file:
                     json.dump(const.default_dict, write_file)
-            data = self.load_data()
-            flag = data['meta']
         except KeyError:
             raise errors.FileStructureError()
-        except:
+        except OSError:
             raise errors.CreateFileError()
 
     def load_data(self):

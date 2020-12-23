@@ -25,7 +25,8 @@ class FileConnectionArgsError(SetUpError):
 
 class SQLConnectionArgsError(SetUpError):
     http_code = 400
-    message = 'Not found host/user/pass/db-name. Check your database connection settings'
+    message = 'Not found host/user/pass/db-name.' \
+              ' Check your database connection settings'
 
 
 class FileStructureError(SetUpError):
@@ -39,4 +40,3 @@ class InvalidArgumentError(APIError):
 
     http_code = 400
     message = 'Invalid argument {}'
-
